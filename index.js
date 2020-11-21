@@ -8,8 +8,6 @@ const mkdirp = require('mkdirp');
 const meta = require.main.require('./src/meta');
 
 const saveFileToLocal = async function (filename, folder, tempPath) {
-	filename = path.parse(filename).name + "_"+ new Date().getTime().toString() + 
-			   path.extname(tempPath);
     const basePath = path.join(path.resolve('.'), "./public/uploads");
 	const uploadPath = path.join(basePath, folder, filename);
 	console.log('basePath: ' + basePath + ' uploadPath: ' + uploadPath);
@@ -79,9 +77,19 @@ vimcn.uploadImage = async function (data) {
 		return await uploadVimcn(data, settings);
 	}
 	else{ //oringinal method
-		var imageData = data.image;
 		var filename = data.image.name;
-		const upload = await saveFileToLocal(filename, data.folder, imageData.path);
+		var tempPath = data.image.path;
+		var folder = data.folder;
+		if (data.uid && data.folder === 'profile'){
+			filename = path.parse(filename).name + "_" + data.uid.toString() 
+					  + path.extname(tempPath);
+		}
+		else{ // non profile
+			filename = path.parse(filename).name + "_"
+			   + new Date().getTime().toString() + path.extname(tempPath);
+			folder = path.posix.join(data.folder, data.uid.toString());
+		}
+		const upload = await saveFileToLocal(filename, folder, tempPath);
 		return {
 			url: upload.url,
 			path: upload.path,
